@@ -1,0 +1,49 @@
+# Arquivos e pastas que NÃO devem ser publicados no npm
+
+# Desenvolvimento
+dev/
+src/
+scripts/
+.eslintrc.js
+.eslintignore
+.prettierrc.json
+.prettierignore
+playwright.config.js
+vitest.config.js
+docker-compose.yml
+
+# Build e configuração
+tsconfig.json
+.tsbuildinfo
+.swcrc
+.eslint.config.js
+
+# Dependências e lock files
+node_modules/
+package-lock.json
+pnpm-lock.yaml
+
+# Git
+.git/
+.gitignore
+.github/
+
+# IDE e editor
+.vscode/
+.idea/
+
+# Logs e temporários
+*.log
+*.tmp
+*.temp
+
+# Testes e cobertura
+coverage/
+*.test.ts
+*.spec.ts
+__tests__/
+__mocks__/
+
+# Documentação (opcional - se quiser publicar docs, mantenha)
+# docs/
+# examples/
