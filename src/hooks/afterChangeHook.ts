@@ -5,9 +5,21 @@ function randomCorrelationId() {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
 }
 
+function draftsEnabledForCollection(collection: any): boolean {
+  return !!collection?.versions?.drafts
+}
+
+function isPublishEvent(args: { collection: any; doc: any; previousDoc?: any }): boolean {
+  const draftsEnabled = draftsEnabledForCollection(args.collection)
+  if (!draftsEnabled) return true
+  const now = args.doc?._status
+  const before = args.previousDoc?._status
+  return now === 'published' && before !== 'published'
+}
+
 export function makeAfterChangeHook(options: Required<PayloadPluginCloudflarePurge>) {
   return async function afterChangeHook(args: any) {
-    const { req, doc, collection, operation } = args
+    const { req, doc, collection, operation, previousDoc } = args
     const op: Operation = operation === 'create' ? 'create' : 'update'
     const correlationId = randomCorrelationId()
 
@@ -40,6 +52,14 @@ export function makeAfterChangeHook(options: Required<PayloadPluginCloudflarePur
         return args
       }
       files = (options.urlBuilder(argsForBuilder) || []).filter(Boolean)
+    }
+
+    if (!options?.purgeEverything && !isPublishEvent({ collection, doc, previousDoc })) {
+      info(
+        { correlationId },
+        '[cf-purge:afterChange] Mudança não é publicação (drafts ativos). Sem purge.',
+      )
+      return args
     }
 
     if (options.useEndpoint) {
