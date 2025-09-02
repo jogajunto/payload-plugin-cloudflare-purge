@@ -1,5 +1,8 @@
 # Payload Plugin Cloudflare Purge
 
+![npm version](https://img.shields.io/npm/v/payload-plugin-cloudflare-purge)
+![npm downloads](https://img.shields.io/npm/dm/payload-plugin-cloudflare-purge)
+
 A [Payload CMS](https://payloadcms.com) plugin that automatically purges Cloudflare CDN cache when content changes. This ensures your visitors always see the most recent version of your site without stale cache.
 
 ## Features
@@ -166,6 +169,13 @@ The plugin includes comprehensive error handling:
 MIT License - see LICENSE file for details.
 
 ## Changelog
+
+### v1.0.1
+
+- Fixed export, main and type scripts by package.json
+- Description repository
+- Version package
+- Add badges version and npm
 
 ### v1.0.0
 
