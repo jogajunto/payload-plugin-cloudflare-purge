@@ -170,6 +170,14 @@ MIT License - see LICENSE file for details.
 
 ## Changelog
 
+### v1.0.3
+
+## Bug Fixes
+
+- Fixed circular reference JSON serialization error: Resolved the "Converting circular structure to JSON" error by ensuring hooks return only the document (doc) instead of the complete arguments object (args) which contained circular references between PgTable and PgInteger objects
+
+- Improved hook compatibility: Modified both afterChangeHook and afterDeleteHook to return the document directly, preventing circular reference issues during Payload CMS response serialization
+
 ### v1.0.2
 
 - Draft-aware purge logic - only purges on actual publication

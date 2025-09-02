@@ -1,6 +1,6 @@
 {
   "name": "payload-plugin-cloudflare-purge",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A Payload CMS plugin that automatically purges Cloudflare CDN cache when content changes. This ensures your visitors always see the most recent version of your site without stale cache.",
   "license": "MIT",
   "type": "module",
