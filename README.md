@@ -32,11 +32,11 @@ Add the plugin to your `payload.config.ts`:
 
 ```typescript
 import { buildConfig } from 'payload'
-import cloudflarePurge from 'payload-plugin-cloudflare-purge'
+import PayloadPluginCloudflarePurge from 'payload-plugin-cloudflare-purge'
 
 export default buildConfig({
   plugins: [
-    cloudflarePurge({
+    PayloadPluginCloudflarePurge({
       enabled: true,
       zoneId: process.env.CLOUDFLARE_ZONE_ID,
       apiToken: process.env.CLOUDFLARE_API_TOKEN,
@@ -58,7 +58,7 @@ CLOUDFLARE_API_TOKEN=your_api_token_here
 ### Advanced Configuration
 
 ```typescript
-cloudflarePurge({
+PayloadPluginCloudflarePurge({
   enabled: true,
   zoneId: process.env.CLOUDFLARE_ZONE_ID,
   apiToken: process.env.CLOUDFLARE_API_TOKEN,
@@ -169,6 +169,12 @@ The plugin includes comprehensive error handling:
 MIT License - see LICENSE file for details.
 
 ## Changelog
+
+### v1.0.2
+
+- Draft-aware purge logic - only purges on actual publication
+- Automatic draft configuration detection per collection
+- Improved TypeScript examples in documentation
 
 ### v1.0.1
 
