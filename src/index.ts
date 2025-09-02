@@ -1,113 +1,261 @@
-import type { CollectionSlug, Config } from 'payload'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Config } from 'payload'
+import { purgeEndpointHandler } from './endpoints/purgeEndpointHandler.js'
+import { makeAfterChangeHook } from './hooks/afterChangeHook.js'
+import { makeAfterDeleteHook } from './hooks/afterDeleteHook.js'
+import type { PayloadPluginCloudflarePurge, Operation, UrlBuilderArgs } from './types/plugin.js'
 
-import { customEndpointHandler } from './endpoints/customEndpointHandler.js'
-
-export type PayloadPluginCloudflarePurgeV3Config = {
-  /**
-   * List of collections to add a custom field
-   */
-  collections?: Partial<Record<CollectionSlug, true>>
-  disabled?: boolean
+function randomCorrelationId() {
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
 }
 
-export const payloadPluginCloudflarePurgeV3 =
-  (pluginOptions: PayloadPluginCloudflarePurgeV3Config) =>
-  (config: Config): Config => {
-    if (!config.collections) {
-      config.collections = []
+// Type guard para verificar se uma chave é válida no tipo PayloadPluginCloudflarePurge
+function isValidOptionKey(key: string): key is keyof PayloadPluginCloudflarePurge {
+  const validKeys: Array<keyof PayloadPluginCloudflarePurge> = [
+    'enabled',
+    'zoneId',
+    'apiToken',
+    'baseUrl',
+    'collections',
+    'events',
+    'purgeEverything',
+    'urlBuilder',
+    'debug',
+    'logCFJSON',
+    'useEndpoint',
+  ]
+  return validKeys.includes(key as keyof PayloadPluginCloudflarePurge)
+}
+
+// Função para obter as chaves definidas nas options
+function getDefinedOptionKeys(pluginOptions: PayloadPluginCloudflarePurge): string[] {
+  return Object.keys(pluginOptions).filter(
+    (key) => isValidOptionKey(key) && pluginOptions[key] !== undefined,
+  )
+}
+
+export default function PayloadPluginCloudflarePurge(
+  pluginOptions: PayloadPluginCloudflarePurge = {},
+) {
+  return function applyPlugin(incoming: Config): Config {
+    const correlationId = randomCorrelationId()
+    const logger = console
+
+    logger.info(
+      {
+        correlationId,
+        plugin: 'payload-plugin-cloudflare-purge',
+        action: 'plugin_initialization_start',
+        optionsProvided: getDefinedOptionKeys(pluginOptions),
+      },
+      '🚀 Iniciando inicialização do plugin Cloudflare Purge',
+    )
+
+    const options: Required<PayloadPluginCloudflarePurge> = {
+      enabled: pluginOptions.enabled ?? false,
+      zoneId: pluginOptions.zoneId ?? process.env.CLOUDFLARE_ZONE_ID ?? '',
+      apiToken: pluginOptions.apiToken ?? process.env.CLOUDFLARE_API_TOKEN ?? '',
+      baseUrl: pluginOptions.baseUrl ?? '',
+      collections: pluginOptions.collections ?? [],
+      events: pluginOptions.events ?? ['afterChange', 'afterDelete'],
+      purgeEverything: pluginOptions.purgeEverything ?? false,
+      urlBuilder: pluginOptions.urlBuilder ?? defaultUrlBuilder,
+      debug: pluginOptions.debug ?? false,
+      logCFJSON: pluginOptions.logCFJSON ?? false,
+      useEndpoint: pluginOptions.useEndpoint ?? true,
     }
 
-    config.collections.push({
-      slug: 'plugin-collection',
-      fields: [
-        {
-          name: 'id',
-          type: 'text',
-        },
-      ],
-    })
+    logger.info(
+      {
+        correlationId,
+        enabled: options.enabled,
+        useEndpoint: options.useEndpoint,
+        events: options.events,
+        collections: options.collections === 'ALL' ? 'ALL' : options.collections.length,
+        hasZoneId: !!options.zoneId,
+        hasApiToken: !!options.apiToken,
+        baseUrl: options.baseUrl || 'not-set',
+      },
+      '📋 Configurações do plugin processadas',
+    )
 
-    if (pluginOptions.collections) {
-      for (const collectionSlug in pluginOptions.collections) {
-        const collection = config.collections.find(
-          (collection) => collection.slug === collectionSlug,
-        )
+    // Clona o config de entrada (padrão oficial)
+    let config: Config = { ...incoming }
 
-        if (collection) {
-          collection.fields.push({
-            name: 'addedByPlugin',
-            type: 'text',
-            admin: {
-              position: 'sidebar',
-            },
-          })
-        }
-      }
-    }
-
-    /**
-     * If the plugin is disabled, we still want to keep added collections/fields so the database schema is consistent which is important for migrations.
-     * If your plugin heavily modifies the database schema, you may want to remove this property.
-     */
-    if (pluginOptions.disabled) {
+    if (!options.enabled) {
+      logger.info(
+        { correlationId },
+        '⏸️  Plugin desabilitado via configuração, pulando inicialização',
+      )
       return config
     }
 
+    // Adiciona endpoints customizados
     if (!config.endpoints) {
       config.endpoints = []
     }
 
-    if (!config.admin) {
-      config.admin = {}
-    }
-
-    if (!config.admin.components) {
-      config.admin.components = {}
-    }
-
-    if (!config.admin.components.beforeDashboard) {
-      config.admin.components.beforeDashboard = []
-    }
-
-    config.admin.components.beforeDashboard.push(
-      `payload-plugin-cloudflare-purge-v3/client#BeforeDashboardClient`,
-    )
-    config.admin.components.beforeDashboard.push(
-      `payload-plugin-cloudflare-purge-v3/rsc#BeforeDashboardServer`,
-    )
-
     config.endpoints.push({
-      handler: customEndpointHandler,
-      method: 'get',
-      path: '/my-plugin-endpoint',
+      path: '/cloudflare-purge',
+      method: 'post',
+      handler: purgeEndpointHandler(options),
     })
 
-    const incomingOnInit = config.onInit
+    logger.info(
+      {
+        correlationId,
+        endpointAdded: '/api/cloudflare-purge (POST)',
+        totalEndpoints: config.endpoints.length,
+      },
+      '✅ Endpoint de purge adicionado',
+    )
 
+    // Seleção de collections alvo
+    const targetSlugs = new Set(
+      options.collections === 'ALL'
+        ? (config.collections ?? []).map((c: any) => c.slug)
+        : (options.collections as string[]),
+    )
+
+    logger.info(
+      {
+        correlationId,
+        targetCollections: Array.from(targetSlugs),
+        totalCollections: config.collections?.length || 0,
+      },
+      '🎯 Collections alvo identificadas',
+    )
+
+    // Injeta hooks nas collections alvo, preservando existentes (spread)
+    let hooksAdded = 0
+    config.collections = (config.collections ?? []).map((coll: any) => {
+      const isTarget = targetSlugs.size === 0 ? false : targetSlugs.has(coll.slug)
+      if (!isTarget) return coll
+
+      const addAfterChange = options.events.includes('afterChange')
+      const addAfterDelete = options.events.includes('afterDelete')
+
+      const hooks = { ...(coll.hooks ?? {}) }
+
+      if (addAfterChange) {
+        const myAfterChange = makeAfterChangeHook(options)
+        hooks.afterChange = [...(hooks.afterChange ?? []), myAfterChange]
+        hooksAdded++
+        logger.debug(
+          {
+            correlationId,
+            collection: coll.slug,
+            hook: 'afterChange',
+            totalHooks: hooks.afterChange?.length,
+          },
+          `➕ Hook afterChange adicionado à collection ${coll.slug}`,
+        )
+      }
+
+      if (addAfterDelete) {
+        const myAfterDelete = makeAfterDeleteHook(options)
+        hooks.afterDelete = [...(hooks.afterDelete ?? []), myAfterDelete]
+        hooksAdded++
+        logger.debug(
+          {
+            correlationId,
+            collection: coll.slug,
+            hook: 'afterDelete',
+            totalHooks: hooks.afterDelete?.length,
+          },
+          `➕ Hook afterDelete adicionado à collection ${coll.slug}`,
+        )
+      }
+
+      return { ...coll, hooks }
+    })
+
+    // Extende onInit sem quebrar a existente (boa prática)
+    const prevOnInit = config.onInit
     config.onInit = async (payload) => {
-      // Ensure we are executing any existing onInit functions before running our own.
-      if (incomingOnInit) {
-        await incomingOnInit(payload)
-      }
+      const initCorrelationId = randomCorrelationId()
 
-      const { totalDocs } = await payload.count({
-        collection: 'plugin-collection',
-        where: {
-          id: {
-            equals: 'seeded-by-plugin',
-          },
+      payload.logger.info(
+        {
+          correlationId: initCorrelationId,
+          plugin: 'payload-plugin-cloudflare-purge',
+          action: 'onInit_start',
+          hooksAdded,
+          targetCollections: Array.from(targetSlugs),
+          useEndpoint: options.useEndpoint,
         },
-      })
+        '🔧 Plugin executando onInit',
+      )
 
-      if (totalDocs === 0) {
-        await payload.create({
-          collection: 'plugin-collection',
-          data: {
-            id: 'seeded-by-plugin',
-          },
-        })
+      if (typeof prevOnInit === 'function') {
+        payload.logger.debug(
+          { correlationId: initCorrelationId, action: 'calling_previous_onInit' },
+          '🔄 Executando onInit anterior',
+        )
+        await prevOnInit(payload)
       }
+
+      payload.logger.info(
+        {
+          correlationId: initCorrelationId,
+          plugin: 'payload-plugin-cloudflare-purge',
+          action: 'onInit_complete',
+          status: 'success',
+        },
+        '✅ Plugin inicializado com sucesso',
+      )
     }
+
+    logger.info(
+      {
+        correlationId,
+        hooksAdded,
+        targetCollectionsCount: targetSlugs.size,
+        useEndpoint: options.useEndpoint,
+        status: 'complete',
+      },
+      '🎉 Plugin Cloudflare Purge configurado com sucesso',
+    )
 
     return config
   }
+}
+
+/**
+ * Default urlBuilder — tenta inferir uma URL a partir de `slug`/`path`.
+ */
+function defaultUrlBuilder({ baseUrl, doc }: { baseUrl?: string; doc: any }): string[] {
+  const urls: string[] = []
+  const base = (baseUrl ?? '').replace(/\/+$/, '') // sem / no final
+  const path =
+    typeof doc?.path === 'string'
+      ? doc.path
+      : typeof doc?.slug === 'string'
+        ? `/${doc.slug}`
+        : doc?.id
+          ? `/${doc.id}`
+          : '/'
+
+  if (base) {
+    const url = `${base}${path}`
+    urls.push(url)
+
+    // Log apenas se estiver em debug mode
+    if (typeof process !== 'undefined' && process.env.DEBUG) {
+      console.debug(
+        {
+          plugin: 'payload-plugin-cloudflare-purge',
+          action: 'default_url_builder',
+          baseUrl: base,
+          docPath: doc?.path,
+          docSlug: doc?.slug,
+          docId: doc?.id,
+          generatedUrl: url,
+        },
+        '🔗 URL gerada pelo urlBuilder padrão',
+      )
+    }
+  }
+
+  return urls
+}
