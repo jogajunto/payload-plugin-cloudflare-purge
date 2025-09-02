@@ -16,20 +16,12 @@
   "compilerOptions": {
     "baseUrl": "./",
     "paths": {
-      "@payload-config": [
-        "./payload.config.ts"
-      ],
-      "payload-plugin-cloudflare-purge-v3": [
-        "../src/index.ts"
-      ],
-      "payload-plugin-cloudflare-purge-v3/client": [
-        "../src/exports/client.ts"
-      ],
-      "payload-plugin-cloudflare-purge-v3/rsc": [
-        "../src/exports/rsc.ts"
-      ]
+      "@payload-config": ["./payload.config.ts"],
+      "payload-plugin-cloudflare-purge": ["../src/index.ts"],
+      "payload-plugin-cloudflare-purge/client": ["../src/exports/client.ts"],
+      "payload-plugin-cloudflare-purge/rsc": ["../src/exports/rsc.ts"]
     },
     "noEmit": true,
-    "emitDeclarationOnly": false,
+    "emitDeclarationOnly": false
   }
 }
