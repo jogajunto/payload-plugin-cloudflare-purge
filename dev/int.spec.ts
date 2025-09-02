@@ -8,17 +8,13 @@ import { customEndpointHandler } from '../src/endpoints/customEndpointHandler.js
 
 let payload: Payload
 
-afterAll(async () => {
-  await payload.destroy()
-})
-
 beforeAll(async () => {
   payload = await getPayload({ config })
 })
 
 describe('Plugin integration tests', () => {
   test('should query custom endpoint added by plugin', async () => {
-    const request = new Request('http://localhost:3000/api/my-plugin-endpoint', {
+    const request = new Request('http://localhost:3000/api/my-route', {
       method: 'GET',
     })
 

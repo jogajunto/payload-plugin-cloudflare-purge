@@ -1,9 +1,9 @@
-import { mongooseAdapter } from '@payloadcms/db-mongodb'
+import { postgresAdapter } from '@payloadcms/db-postgres'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { MongoMemoryReplSet } from 'mongodb-memory-server'
 import path from 'path'
 import { buildConfig } from 'payload'
-import { payloadPluginCloudflarePurgeV3 } from 'payload-plugin-cloudflare-purge-v3'
+import PayloadPluginCloudflarePurge from 'payload-plugin-cloudflare-purge'
 import sharp from 'sharp'
 import { fileURLToPath } from 'url'
 
@@ -18,6 +18,7 @@ if (!process.env.ROOT_DIR) {
 }
 
 const buildConfigWithMemoryDB = async () => {
+  /** TODO: tests db to use postgres */
   if (process.env.NODE_ENV === 'test') {
     const memoryDB = await MongoMemoryReplSet.create({
       replSet: {
@@ -38,7 +39,17 @@ const buildConfigWithMemoryDB = async () => {
     collections: [
       {
         slug: 'posts',
-        fields: [],
+        fields: [
+          {
+            name: 'title',
+            type: 'text',
+            required: true,
+          },
+          {
+            name: 'content',
+            type: 'richText',
+          },
+        ],
       },
       {
         slug: 'media',
@@ -48,9 +59,10 @@ const buildConfigWithMemoryDB = async () => {
         },
       },
     ],
-    db: mongooseAdapter({
-      ensureIndexes: true,
-      url: process.env.DATABASE_URI || '',
+    db: postgresAdapter({
+      pool: {
+        connectionString: process.env.DATABASE_URL || '',
+      },
     }),
     editor: lexicalEditor(),
     email: testEmailAdapter,
@@ -58,10 +70,8 @@ const buildConfigWithMemoryDB = async () => {
       await seed(payload)
     },
     plugins: [
-      payloadPluginCloudflarePurgeV3({
-        collections: {
-          posts: true,
-        },
+      PayloadPluginCloudflarePurge({
+        enabled: true,
       }),
     ],
     secret: process.env.PAYLOAD_SECRET || 'test-secret_key',
