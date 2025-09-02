@@ -49,7 +49,7 @@ export function makeAfterChangeHook(options: Required<PayloadPluginCloudflarePur
     if (!purgeEverything) {
       if (!options.urlBuilder) {
         warn({ correlationId }, '[cf-purge:afterChange] urlBuilder ausente; nada para purgar')
-        return args
+        return doc
       }
       files = (options.urlBuilder(argsForBuilder) || []).filter(Boolean)
     }
@@ -59,7 +59,7 @@ export function makeAfterChangeHook(options: Required<PayloadPluginCloudflarePur
         { correlationId },
         '[cf-purge:afterChange] Mudança não é publicação (drafts ativos). Sem purge.',
       )
-      return args
+      return doc
     }
 
     if (options.useEndpoint) {
@@ -86,7 +86,7 @@ export function makeAfterChangeHook(options: Required<PayloadPluginCloudflarePur
     }
 
     info({ correlationId }, '[cf-purge:afterChange] Hook afterChange concluído')
-    return args
+    return doc
   }
 }
 

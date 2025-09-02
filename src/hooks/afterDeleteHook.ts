@@ -36,7 +36,7 @@ export function makeAfterDeleteHook(options: Required<PayloadPluginCloudflarePur
     if (!purgeEverything) {
       if (!options.urlBuilder) {
         warn({ correlationId }, '[cf-purge:afterDelete] urlBuilder ausente; nada para purgar')
-        return args
+        return doc
       }
       files = (options.urlBuilder(argsForBuilder) || []).filter(Boolean)
     }
@@ -65,7 +65,7 @@ export function makeAfterDeleteHook(options: Required<PayloadPluginCloudflarePur
     }
 
     info({ correlationId }, '[cf-purge:afterDelete] Hook afterDelete concluído')
-    return args
+    return doc
   }
 }
 
