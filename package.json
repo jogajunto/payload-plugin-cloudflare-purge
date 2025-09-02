@@ -1,5 +1,5 @@
 {
-  "name": "payload-plugin-cloudflare-purge-v3",
+  "name": "payload-plugin-cloudflare-purge",
   "version": "1.0.0",
   "description": "A blank template to get started with Payload 3.0",
   "license": "MIT",
@@ -116,5 +116,7 @@
     ]
   },
   "registry": "https://registry.npmjs.org/",
-  "dependencies": {}
+  "dependencies": {
+    "@swc/core": "^1.13.5"
+  }
 }
