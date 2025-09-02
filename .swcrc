@@ -1,24 +1,33 @@
 {
   "$schema": "https://json.schemastore.org/swcrc",
-  "sourceMaps": true,
   "jsc": {
-    "target": "esnext",
     "parser": {
       "syntax": "typescript",
       "tsx": true,
-      "dts": true
+      "decorators": false,
+      "dynamicImport": true
     },
     "transform": {
       "react": {
-        "runtime": "automatic",
-        "pragmaFrag": "React.Fragment",
-        "throwIfNamespace": true,
-        "development": false,
-        "useBuiltins": true
+        "runtime": "automatic"
       }
+    },
+    "target": "es2022",
+    "loose": false,
+    "externalHelpers": false,
+    "keepClassNames": false,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
     }
   },
   "module": {
-    "type": "es6"
-  }
+    "type": "es6",
+    "strict": false,
+    "strictMode": true,
+    "lazy": false,
+    "noInterop": false
+  },
+  "minify": false,
+  "sourceMaps": true
 }
