@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "github:jogajunto/payload-plugin-cloudflare-purge"
+    "url": "git+https://github.com/jogajunto/payload-plugin-cloudflare-purge.git"
   },
   "exports": {
     ".": {
