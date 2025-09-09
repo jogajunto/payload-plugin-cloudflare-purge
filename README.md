@@ -32,7 +32,7 @@ Add the plugin to your `payload.config.ts`:
 
 ```typescript
 import { buildConfig } from 'payload'
-import PayloadPluginCloudflarePurge from 'payload-plugin-cloudflare-purge'
+import { PayloadPluginCloudflarePurge } from 'payload-plugin-cloudflare-purge'
 
 export default buildConfig({
   plugins: [
@@ -170,6 +170,25 @@ MIT License - see LICENSE file for details.
 
 ## Changelog
 
+### v2.0.0
+
+**Breaking Changes**
+
+- Switched from default export to named export: use `import { PayloadPluginCloudflarePurge } from 'payload-plugin-cloudflare-purge'`.
+- Removed unused subpath exports: `payload-plugin-cloudflare-purge/client` and `payload-plugin-cloudflare-purge/rsc`.
+
+**Migration Guide**
+
+- Update imports in your `payload.config.ts` and examples:
+
+```ts
+// Before
+// import PayloadPluginCloudflarePurge from 'payload-plugin-cloudflare-purge'
+
+// After
+import { PayloadPluginCloudflarePurge } from 'payload-plugin-cloudflare-purge'
+```
+
 ### v1.0.3
 
 ## Bug Fixes
@@ -199,3 +218,7 @@ MIT License - see LICENSE file for details.
 - Improved error handling and logging
 - Internal endpoint for manual purges
 - Flexible URL building system
+
+```
+
+```
