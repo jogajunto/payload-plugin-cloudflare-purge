@@ -4,6 +4,14 @@
   "description": "A Payload CMS plugin that automatically purges Cloudflare CDN cache when content changes. This ensures your visitors always see the most recent version of your site without stale cache.",
   "license": "MIT",
   "type": "module",
+  "homepage": "https://github.com/jogajunto/payload-plugin-cloudflare-purge#readme",
+  "bugs": {
+    "url": "https://github.com/jogajunto/payload-plugin-cloudflare-purge/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "github:jogajunto/payload-plugin-cloudflare-purge"
+  },
   "exports": {
     ".": {
       "import": "./dist/index.js",
@@ -95,8 +103,5 @@
       "unrs-resolver"
     ]
   },
-  "registry": "https://registry.npmjs.org/",
-  "dependencies": {
-    "@swc/core": "^1.13.5"
-  }
+  "registry": "https://registry.npmjs.org/"
 }
