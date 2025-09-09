@@ -34,9 +34,7 @@ function getDefinedOptionKeys(pluginOptions: PayloadPluginCloudflarePurge): stri
   )
 }
 
-export default function PayloadPluginCloudflarePurge(
-  pluginOptions: PayloadPluginCloudflarePurge = {},
-) {
+export function PayloadPluginCloudflarePurge(pluginOptions: PayloadPluginCloudflarePurge = {}) {
   return function applyPlugin(incoming: Config): Config {
     const correlationId = randomCorrelationId()
     const logger = console
