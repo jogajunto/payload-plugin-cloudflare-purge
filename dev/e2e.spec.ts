@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 
 // this is an example Playwright e2e test
 test('should render admin panel logo', async ({ page }) => {
-  await page.goto('/admin')
+  await page.goto('/admin/login')
 
   // login
   await page.fill('#field-email', 'dev@payloadcms.com')
