@@ -1,3 +1,5 @@
+// src/types/plugin.ts
+
 export type Operation = 'create' | 'update' | 'delete'
 
 export type UrlBuilderArgs = {
@@ -7,8 +9,12 @@ export type UrlBuilderArgs = {
   doc: any
   /** Request do Payload (contém req.payload.logger) */
   req: any
-  /** Slug da collection */
-  collectionSlug: string
+  /** Slug da collection, se a operação ocorreu em uma collection */
+  collectionSlug?: string
+  /** Slug do global, se a operação ocorreu em um global */
+  globalSlug?: string
+  /** O locale da operação, se a opção `localized` estiver ativa. */
+  locale?: string
   /** Operação */
   operation: Operation
 }
@@ -24,6 +30,10 @@ export interface PayloadPluginCloudflarePurge {
   baseUrl?: string
   /** Quais collections recebem os hooks; 'ALL' aplica em todas */
   collections?: string[] | 'ALL'
+  /** Quais campos globais recebem os hooks; 'ALL' aplica em todas */
+  globals?: string[] | 'ALL'
+  /** Ativa o suporte a localização, passando o `locale` para o `urlBuilder`. */
+  localized?: boolean
   /** Quais eventos acionarão purge (padrão: afterChange e afterDelete) */
   events?: Array<'afterChange' | 'afterDelete'>
   /** Se true (ou função que retorne true), dispara purgeEverything */
