@@ -24,6 +24,7 @@ export function makeAfterDeleteHook(options: Required<PayloadPluginCloudflarePur
       doc,
       req,
       collectionSlug: collection?.slug,
+      locale: options.localized ? req?.locale : undefined,
       operation: 'delete',
     }
 
