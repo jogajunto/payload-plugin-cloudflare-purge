@@ -5,13 +5,21 @@ function randomCorrelationId() {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
 }
 
-function draftsEnabledForCollection(collection: any): boolean {
-  return !!collection?.versions?.drafts
+function areDraftsEnabled(entity: any): boolean {
+  return !!entity?.versions?.drafts
 }
 
-function isPublishEvent(args: { collection: any; doc: any; previousDoc?: any }): boolean {
-  const draftsEnabled = draftsEnabledForCollection(args.collection)
+function isPublishEvent(args: {
+  collection?: any
+  global?: any
+  doc: any
+  previousDoc?: any
+}): boolean {
+  const entity = args.collection || args.global
+  const draftsEnabled = areDraftsEnabled(entity)
+
   if (!draftsEnabled) return true
+
   const now = args.doc?._status
   const before = args.previousDoc?._status
   return now === 'published' && before !== 'published'
@@ -19,7 +27,7 @@ function isPublishEvent(args: { collection: any; doc: any; previousDoc?: any }):
 
 export function makeAfterChangeHook(options: Required<PayloadPluginCloudflarePurge>) {
   return async function afterChangeHook(args: any) {
-    const { req, doc, collection, operation, previousDoc } = args
+    const { req, doc, collection, global, operation, previousDoc } = args
     const op: Operation = operation === 'create' ? 'create' : 'update'
     const correlationId = randomCorrelationId()
 
@@ -27,9 +35,12 @@ export function makeAfterChangeHook(options: Required<PayloadPluginCloudflarePur
     const info = (o: any, m: string) => logger?.info?.call(logger, o, m) ?? console.log(m, o)
     const warn = (o: any, m: string) => logger?.warn?.call(logger, o, m) ?? console.warn(m, o)
 
+    const slug = collection?.slug ?? global?.slug
+    const type = collection ? 'collection' : 'global'
+
     info(
-      { correlationId, collection: collection?.slug, op, useEndpoint: options.useEndpoint },
-      '[cf-purge:afterChange] Hook afterChange iniciado',
+      { correlationId, type, slug, op, useEndpoint: options.useEndpoint },
+      `[cf-purge:afterChange] Hook afterChange iniciado para ${type}: ${slug}`,
     )
 
     const argsForBuilder: UrlBuilderArgs = {
@@ -37,6 +48,8 @@ export function makeAfterChangeHook(options: Required<PayloadPluginCloudflarePur
       doc,
       req,
       collectionSlug: collection?.slug,
+      globalSlug: global?.slug,
+      locale: options.localized ? req?.locale : undefined,
       operation: op,
     }
 
@@ -54,7 +67,7 @@ export function makeAfterChangeHook(options: Required<PayloadPluginCloudflarePur
       files = (options.urlBuilder(argsForBuilder) || []).filter(Boolean)
     }
 
-    if (!options?.purgeEverything && !isPublishEvent({ collection, doc, previousDoc })) {
+    if (!options?.purgeEverything && !isPublishEvent({ collection, global, doc, previousDoc })) {
       info(
         { correlationId },
         '[cf-purge:afterChange] Mudança não é publicação (drafts ativos). Sem purge.',
