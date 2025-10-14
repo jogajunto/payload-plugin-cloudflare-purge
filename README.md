@@ -8,11 +8,12 @@ A [Payload CMS](https://payloadcms.com) plugin that automatically purges Cloudfl
 ## Features
 
 - 🚀 **Automatic Cache Purge** - Purges on content changes for **collections and globals**.
+- ⚡ **Asynchronous Logic** - `urlBuilder` can be `async`, allowing for complex data fetching to build purge lists.
 - 🌍 **Localization Support** - Passes the current `locale` to the URL builder.
-- ⚡ **Flexible Configuration** - Support for multiple events, collections, and globals.
 - 🔧 **Custom URL Building** - Define custom logic for which URLs to purge.
 - 📊 **Comprehensive Logging** - Detailed logs with correlation IDs for debugging.
 - 🔌 **Endpoint Support** - Optional internal endpoint for manual purge requests.
+- 🛡️ **Typed** - Exports all necessary types for a fully typed experience in your project.
 
 ## Installation
 
@@ -98,39 +99,49 @@ const response = await fetch('/api/cloudflare-purge', {
 
 ## Options
 
-| Option            | Type                                  | Default                          | Description                                   |
-| ----------------- | ------------------------------------- | -------------------------------- | --------------------------------------------- |
-| `enabled`         | `boolean`                             | `false`                          | Enable/disable the plugin                     |
-| `zoneId`          | `string`                              | -                                | Cloudflare Zone ID                            |
-| `apiToken`        | `string`                              | -                                | Cloudflare API Token                          |
-| `baseUrl`         | `string`                              | -                                | Your site's base URL                          |
-| `collections`     | `string[]` or `'ALL'`                 | `[]`                             | Collections to monitor                        |
-| `globals`         | `string[]` or `'ALL'`                 | `[]`                             | Globals to monitor                            |
-| `localized`       | `boolean`                             | `false`                          | Enable localization support (passes `locale`) |
-| `events`          | `Array<'afterChange'\|'afterDelete'>` | `['afterChange', 'afterDelete']` | Events that trigger purge                     |
-| `purgeEverything` | `boolean` or `function`               | `false`                          | Purge entire cache                            |
-| `urlBuilder`      | `function`                            | Default builder                  | Custom URL builder function                   |
-| `debug`           | `boolean`                             | `false`                          | Enable debug logging                          |
-| `logCFJSON`       | `boolean`                             | `false`                          | Log full Cloudflare JSON responses            |
-| `useEndpoint`     | `boolean`                             | `true`                           | Use internal endpoint for purging             |
+| Option            | Type                                  | Default                          | Description                                     |
+| ----------------- | ------------------------------------- | -------------------------------- | ----------------------------------------------- |
+| `enabled`         | `boolean`                             | `false`                          | Enable/disable the plugin                       |
+| `zoneId`          | `string`                              | -                                | Cloudflare Zone ID                              |
+| `apiToken`        | `string`                              | -                                | Cloudflare API Token                            |
+| `baseUrl`         | `string`                              | -                                | Your site's base URL                            |
+| `collections`     | `string[]` or `'ALL'`                 | `[]`                             | Collections to monitor                          |
+| `globals`         | `string[]` or `'ALL'`                 | `[]`                             | Globals to monitor                              |
+| `localized`       | `boolean`                             | `false`                          | Enable localization support (passes `locale`)   |
+| `events`          | `Array<'afterChange'\|'afterDelete'>` | `['afterChange', 'afterDelete']` | Events that trigger purge                       |
+| `purgeEverything` | `boolean` or `function`               | `false`                          | Purge entire cache                              |
+| `urlBuilder`      | `function`                            | Default builder                  | Custom URL builder function (`async` supported) |
+| `debug`           | `boolean`                             | `false`                          | Enable debug logging                            |
+| `logCFJSON`       | `boolean`                             | `false`                          | Log full Cloudflare JSON responses              |
+| `useEndpoint`     | `boolean`                             | `true`                           | Use internal endpoint for purging               |
 
-## Custom URL Builder
+## Custom URL Builder (Async)
 
-You can provide a custom function to build URLs for purging. With `v2.1.0`, you now have access to `globalSlug` and `locale`.
+You can provide a custom `async` function to build URLs, allowing you to fetch additional data needed to create a comprehensive purge list.
 
 ```typescript
+import { PayloadPluginCloudflarePurge } from 'payload-plugin-cloudflare-purge'
+import type { UrlBuilderArgs } from 'payload-plugin-cloudflare-purge/types'
+
 PayloadPluginCloudflarePurge({
   // ...
-  localized: true, // Enable to receive the 'locale' parameter
-  urlBuilder: ({ doc, collectionSlug, globalSlug, locale, baseUrl }) => {
+  urlBuilder: async (args: UrlBuilderArgs) => {
+    const { doc, req, collectionSlug, baseUrl } = args
+
     if (collectionSlug === 'posts') {
-      // Example for a localized post
-      return [`${baseUrl}/${locale}/blog/${doc.slug}`]
+      // Example: Fetch all category pages this post belongs to
+      const category = await req.payload.findByID({
+        collection: 'categories',
+        id: doc.category.id,
+      })
+
+      const urls = [`${baseUrl}/posts/${doc.slug}`]
+      if (category) {
+        urls.push(`${baseUrl}/categories/${category.slug}`)
+      }
+      return urls
     }
-    if (globalSlug === 'header') {
-      // Purge all pages if the header changes
-      return [`${baseUrl}/${locale}/*`]
-    }
+
     return []
   },
 })
@@ -182,7 +193,14 @@ MIT License - see LICENSE file for details.
 
 ## Changelog
 
-### v2.1.0 (Latest)
+### v2.2.0 (Latest)
+
+**✨ Features**
+
+- **Asynchronous `urlBuilder`**: The `urlBuilder` function can now be `async`, allowing for complex logic that needs to fetch data (e.g., querying the Payload API) to build the list of URLs to purge.
+- **Exported Types**: The plugin now properly exports all its types, allowing for a fully typed implementation in your own project via `import type { UrlBuilderArgs } from 'payload-plugin-cloudflare-purge/types'`.
+
+### v2.1.0
 
 **✨ Features**
 
