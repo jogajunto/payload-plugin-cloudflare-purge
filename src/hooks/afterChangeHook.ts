@@ -64,7 +64,7 @@ export function makeAfterChangeHook(options: Required<PayloadPluginCloudflarePur
         warn({ correlationId }, '[cf-purge:afterChange] urlBuilder ausente; nada para purgar')
         return doc
       }
-      files = (options.urlBuilder(argsForBuilder) || []).filter(Boolean)
+      files = ((await options.urlBuilder(argsForBuilder)) || []).filter(Boolean)
     }
 
     if (!options?.purgeEverything && !isPublishEvent({ collection, global, doc, previousDoc })) {
