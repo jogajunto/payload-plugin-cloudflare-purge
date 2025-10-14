@@ -38,8 +38,11 @@ export interface PayloadPluginCloudflarePurge {
   events?: Array<'afterChange' | 'afterDelete'>
   /** Se true (ou função que retorne true), dispara purgeEverything */
   purgeEverything?: boolean | ((args: UrlBuilderArgs) => boolean)
-  /** Função que retorna as URLs a purgar */
-  urlBuilder?: (args: UrlBuilderArgs) => string[]
+  /**
+   * Função que retorna as URLs a purgar.
+   * Pode ser síncrona (retorna string[]) ou assíncrona (retorna Promise<string[]>).
+   */
+  urlBuilder?: (args: UrlBuilderArgs) => string[] | Promise<string[]>
   /** Log extra de depuração */
   debug?: boolean
   /** Logar JSON completo da CF quando debug estiver ativo */
