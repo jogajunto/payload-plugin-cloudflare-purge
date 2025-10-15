@@ -1,5 +1,7 @@
 // src/types/plugin.ts
 
+import { PayloadRequest } from 'payload'
+
 export type Operation = 'create' | 'update' | 'delete'
 
 export type UrlBuilderArgs = {
@@ -7,8 +9,10 @@ export type UrlBuilderArgs = {
   baseUrl?: string
   /** Documento atual (em delete, pode ser o doc prévio) */
   doc: any
+  /** Documento ANTES da alteração (disponível apenas no 'afterChange') */
+  previousDoc?: any
   /** Request do Payload (contém req.payload.logger) */
-  req: any
+  req: PayloadRequest
   /** Slug da collection, se a operação ocorreu em uma collection */
   collectionSlug?: string
   /** Slug do global, se a operação ocorreu em um global */
