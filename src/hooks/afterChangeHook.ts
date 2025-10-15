@@ -46,6 +46,7 @@ export function makeAfterChangeHook(options: Required<PayloadPluginCloudflarePur
     const argsForBuilder: UrlBuilderArgs = {
       baseUrl: options.baseUrl,
       doc,
+      previousDoc: previousDoc,
       req,
       collectionSlug: collection?.slug,
       globalSlug: global?.slug,
