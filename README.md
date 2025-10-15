@@ -126,7 +126,7 @@ import type { UrlBuilderArgs } from 'payload-plugin-cloudflare-purge/types'
 PayloadPluginCloudflarePurge({
   // ...
   urlBuilder: async (args: UrlBuilderArgs) => {
-    const { doc, req, collectionSlug, baseUrl } = args
+    const { doc, previousDoc, req, collectionSlug, baseUrl } = args
 
     if (collectionSlug === 'posts') {
       // Example: Fetch all category pages this post belongs to
@@ -139,6 +139,12 @@ PayloadPluginCloudflarePurge({
       if (category) {
         urls.push(`${baseUrl}/categories/${category.slug}`)
       }
+
+      // If slug changed, purge the old URL too
+      if (previousDoc && previousDoc.slug && previousDoc.slug !== doc.slug) {
+        urls.push(`${baseUrl}/posts/${previousDoc.slug}`)
+      }
+
       return urls
     }
 
@@ -193,7 +199,17 @@ MIT License - see LICENSE file for details.
 
 ## Changelog
 
-### v2.2.0 (Latest)
+### v2.3.0 (Latest)
+
+**✨ Features**
+
+- **Access to Previous Document**: The `urlBuilder` function now receives a `previousDoc` argument in the `afterChange` hook. This allows for comparing the document before and after the change, enabling more advanced cache purging logic, such as purging old URLs when a slug is modified.
+
+**🛠️ Improvements**
+
+- **Improved Typing**: The `req` object passed to the `urlBuilder` is now correctly typed as `PayloadRequest`.
+
+### v2.2.0
 
 **✨ Features**
 
