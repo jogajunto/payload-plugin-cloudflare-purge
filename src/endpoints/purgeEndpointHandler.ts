@@ -10,7 +10,7 @@ export const purgeEndpointHandler = (
   options: Required<PayloadPluginCloudflarePurge>,
 ): PayloadHandler => {
   return async (req) => {
-    const { payload, user, body } = req
+    const { payload, user } = req
     const correlationId = randomCorrelationId()
 
     const logger = payload.logger ?? console
@@ -33,6 +33,15 @@ export const purgeEndpointHandler = (
     }
 
     try {
+      let body: any = {}
+      // Verificamos se o req.json É UMA FUNÇÃO antes de chamá-lo
+      if (typeof req.json === 'function') {
+        body = await req.json() // Modo Fetch API (o que queremos)
+      } else if (req.body) {
+        body = req.body // Fallback para o modo Express (corpo já "parseado")
+      } else {
+        warn({ correlationId }, 'Nenhum body encontrado na requisição de purge.')
+      }
       const { files, purgeEverything = false } = body as {
         files?: string[]
         purgeEverything?: boolean
