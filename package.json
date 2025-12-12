@@ -21,6 +21,11 @@
     "./types": {
       "import": "./dist/types/plugin.js",
       "types": "./dist/types/plugin.d.ts"
+    },
+    "./client": {
+      "import": "./dist/exports/client.js",
+      "types": "./dist/exports/client.d.ts",
+      "default": "./dist/exports/client.js"
     }
   },
   "main": "./dist/index.js",
@@ -95,6 +100,11 @@
         "import": "./dist/index.js",
         "types": "./dist/index.d.ts",
         "default": "./dist/index.js"
+      },
+      "./client": {
+        "import": "./dist/exports/client.js",
+        "types": "./dist/exports/client.d.ts",
+        "default": "./dist/exports/client.js"
       }
     },
     "main": "./dist/index.js",
