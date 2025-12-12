@@ -47,3 +47,5 @@ __mocks__/
 # Documentação (opcional - se quiser publicar docs, mantenha)
 # docs/
 # examples/
+
+RELEASE_NOTES*.md
