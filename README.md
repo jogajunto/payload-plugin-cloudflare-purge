@@ -8,6 +8,7 @@ A [Payload CMS](https://payloadcms.com) plugin that automatically purges Cloudfl
 ## Features
 
 - 🚀 **Automatic Cache Purge** - Purges on content changes for **collections and globals**.
+- 🔘 **UI Button** - Optional "Purge Everything" button directly in the Admin Dashboard.
 - ⚡ **Asynchronous Logic** - `urlBuilder` can be `async`, allowing for complex data fetching to build purge lists.
 - 🌍 **Localization Support** - Passes the current `locale` to the URL builder.
 - 🔧 **Custom URL Building** - Define custom logic for which URLs to purge.
@@ -44,9 +45,9 @@ export default buildConfig({
       baseUrl: 'https://yourdomain.com',
       collections: ['posts', 'pages'],
       globals: ['header', 'footer'], // Target specific globals (case exist)
+      showButtonPurgeEverything: true, // Show the manual purge button in dashboard
     }),
-  ],
-  // ... other config
+  ], // ... other config
 })
 ```
 
@@ -68,6 +69,7 @@ PayloadPluginCloudflarePurge({
   collections: 'ALL', // Purge for all collections
   events: ['afterChange', 'afterDelete'],
   purgeEverything: false,
+  showButtonPurgeEverything: true,
   urlBuilder: ({ doc, collectionSlug }) => {
     // Custom URL building logic
     return [`https://yourdomain.com/${collectionSlug}/${doc.slug}`]
@@ -99,21 +101,22 @@ const response = await fetch('/api/cloudflare-purge', {
 
 ## Options
 
-| Option            | Type                                  | Default                          | Description                                     |
-| ----------------- | ------------------------------------- | -------------------------------- | ----------------------------------------------- |
-| `enabled`         | `boolean`                             | `false`                          | Enable/disable the plugin                       |
-| `zoneId`          | `string`                              | -                                | Cloudflare Zone ID                              |
-| `apiToken`        | `string`                              | -                                | Cloudflare API Token                            |
-| `baseUrl`         | `string`                              | -                                | Your site's base URL                            |
-| `collections`     | `string[]` or `'ALL'`                 | `[]`                             | Collections to monitor                          |
-| `globals`         | `string[]` or `'ALL'`                 | `[]`                             | Globals to monitor                              |
-| `localized`       | `boolean`                             | `false`                          | Enable localization support (passes `locale`)   |
-| `events`          | `Array<'afterChange'\|'afterDelete'>` | `['afterChange', 'afterDelete']` | Events that trigger purge                       |
-| `purgeEverything` | `boolean` or `function`               | `false`                          | Purge entire cache                              |
-| `urlBuilder`      | `function`                            | Default builder                  | Custom URL builder function (`async` supported) |
-| `debug`           | `boolean`                             | `false`                          | Enable debug logging                            |
-| `logCFJSON`       | `boolean`                             | `false`                          | Log full Cloudflare JSON responses              |
-| `useEndpoint`     | `boolean`                             | `true`                           | Use internal endpoint for purging               |
+| Option                       | Type                                   | Default                           | Description                                      |
+| ---------------------------- | -------------------------------------- | --------------------------------- | ------------------------------------------------ |
+| `enabled`                    | `boolean`                              | `false`                           | Enable/disable the plugin                        |
+| `zoneId`                     | `string`                               | -                                 | Cloudflare Zone ID                               |
+| `apiToken`                   | `string`                               | -                                 | Cloudflare API Token                             |
+| `baseUrl`                    | `string`                               | -                                 | Your site's base URL                             |
+| `collections`                | `string[]` or `'ALL'`                  | `[]`                              | Collections to monitor                           |
+| `globals`                    | `string[]` or `'ALL'`                  | `[]`                              | Globals to monitor                               |
+| `localized`                  | `boolean`                              | `false`                           | Enable localization support (passes `locale`)    |
+| `events`                     | `Array<'afterChange'\|'afterDelete'>`  | `['afterChange', 'afterDelete']`  | Events that trigger purge                        |
+| `purgeEverything`            | `boolean` or `function`                | `false`                           | Purge entire cache                               |
+| `showButtonPurgeEverything`  | `boolean`                              | `false`                           | Add a "Purge Everything" button to the Dashboard |
+| `urlBuilder`                 | `function`                             | Default builder                   | Custom URL builder function (`async` supported)  |
+| `debug`                      | `boolean`                              | `false`                           | Enable debug logging                             |
+| `logCFJSON`                  | `boolean`                              | `false`                           | Log full Cloudflare JSON responses               |
+| `useEndpoint`                | `boolean`                              | `true`                            | Use internal endpoint for purging                |
 
 ## Custom URL Builder (Async)
 
@@ -157,11 +160,11 @@ PayloadPluginCloudflarePurge({
 
 The plugin includes a comprehensive development environment:
 
-1. **Start PostgreSQL**: `docker-compose up -d`
-2. **Setup environment**: Copy `.env.example` to `.env` and configure
-3. **Install dependencies**: `pnpm install` (or npm/yarn)
-4. **Start dev server**: `pnpm dev`
-5. **Run tests**: `pnpm test`
+1.  **Start PostgreSQL**: `docker-compose up -d`
+2.  **Setup environment**: Copy `.env.example` to `.env` and configure
+3.  **Install dependencies**: `pnpm install` (or npm/yarn)
+4.  **Start dev server**: `pnpm dev`
+5.  **Run tests**: `pnpm test`
 
 ## Testing
 
@@ -199,7 +202,18 @@ MIT License - see LICENSE file for details.
 
 ## Changelog
 
-### v2.3.0 (Latest)
+### v2.4.0 (Latest)
+
+**✨ Features**
+
+- **Dashboard Purge Button**: Added a `PurgeEverythingButton` component that can be optionally injected into the Admin Dashboard. This allows admins to trigger a "Purge Everything" request directly from the UI.
+- **Configurable UI**: Introduced the `showButtonPurgeEverything` option (default: `false`) to enable the dashboard button.
+
+**🐛 Fixes**
+
+- **Improved Endpoint Body Parsing**: Updated `purgeEndpointHandler` to correctly handle request bodies in both Next.js Web API environments (using `req.json()`) and standard Express environments (using `req.body`). This fixes issues where the manual purge endpoint might fail to read options.
+
+### v2.3.0
 
 **✨ Features**
 
@@ -276,7 +290,3 @@ import { PayloadPluginCloudflarePurge } from 'payload-plugin-cloudflare-purge'
 - Improved error handling and logging
 - Internal endpoint for manual purges
 - Flexible URL building system
-
-```
-
-```
