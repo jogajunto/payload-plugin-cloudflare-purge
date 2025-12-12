@@ -21,6 +21,7 @@ function isValidOptionKey(key: string): key is keyof PayloadPluginCloudflarePurg
     'localized',
     'events',
     'purgeEverything',
+    'showButtonPurgeEverything',
     'urlBuilder',
     'debug',
     'logCFJSON',
@@ -51,6 +52,7 @@ export function PayloadPluginCloudflarePurge(pluginOptions: PayloadPluginCloudfl
       localized: pluginOptions.localized ?? false,
       events: pluginOptions.events ?? ['afterChange', 'afterDelete'],
       purgeEverything: pluginOptions.purgeEverything ?? false,
+      showButtonPurgeEverything: pluginOptions.showButtonPurgeEverything ?? false,
       urlBuilder: pluginOptions.urlBuilder ?? defaultUrlBuilder,
       debug: pluginOptions.debug ?? false,
       logCFJSON: pluginOptions.logCFJSON ?? false,
@@ -227,6 +229,36 @@ export function PayloadPluginCloudflarePurge(pluginOptions: PayloadPluginCloudfl
 
       return { ...glob, hooks }
     })
+
+    if (options.showButtonPurgeEverything) {
+      if (!config.admin) {
+        config.admin = {}
+      }
+
+      if (!config.admin.components) {
+        config.admin.components = {}
+      }
+
+      if (!config.admin.components.afterDashboard) {
+        config.admin.components.afterDashboard = []
+      }
+
+      config.admin.components.afterDashboard.push(
+        `payload-plugin-cloudflare-purge/client#PurgeEverythingButton`,
+      )
+
+      if (options.debug) {
+        logger.info(
+          {
+            correlationId,
+            action: 'admin_component_added',
+            component: 'PurgeEverythingButton',
+            location: 'afterDashboard',
+          },
+          '🔘 Botão de Purge adicionado ao Dashboard',
+        )
+      }
+    }
 
     // Extende onInit sem quebrar a existente (boa prática)
     const prevOnInit = config.onInit

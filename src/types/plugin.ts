@@ -40,8 +40,10 @@ export interface PayloadPluginCloudflarePurge {
   localized?: boolean
   /** Quais eventos acionarão purge (padrão: afterChange e afterDelete) */
   events?: Array<'afterChange' | 'afterDelete'>
-  /** Se true (ou função que retorne true), dispara purgeEverything */
+  /** Se true (ou função que retorne true), dispara purgeEverything, o parâmetro urlBuilder não será executado mesmo que instanciado no plugin */
   purgeEverything?: boolean | ((args: UrlBuilderArgs) => boolean)
+  /** Se true, renderiza o botão para limpar o cache em todo o site em `admin.components.afterDashboard`  */
+  showButtonPurgeEverything?: boolean
   /**
    * Função que retorna as URLs a purgar.
    * Pode ser síncrona (retorna string[]) ou assíncrona (retorna Promise<string[]>).
